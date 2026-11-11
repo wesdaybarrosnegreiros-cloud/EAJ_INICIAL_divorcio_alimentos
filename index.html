@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forja de Documentos - EAJ UNAERP</title>
     
-    <!-- Fonte moderna do Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     
     <style>
@@ -54,7 +53,7 @@
             border-bottom-color: #45a29e;
         }
         body.dark-mode .header-img {
-            background-color: white; /* Mantém o fundo do logo branco mesmo no modo escuro */
+            background-color: white; 
             padding: 10px;
             border-radius: 8px;
         }
@@ -69,7 +68,6 @@
             transition: background-color 0.8s ease, color 0.8s ease;
         }
         
-        /* Novos estilos para o cabeçalho UNAERP e EAJ */
         .header-img {
             width: 100%;
             max-width: 250px;
@@ -229,12 +227,44 @@
             font-style: italic;
         }
         body.dark-mode .nota-asterisco { color: #888; }
+
+        .idle-toast {
+            position: fixed;
+            bottom: -100px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--unaerp-blue), #2c3e80);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: bottom 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1000;
+            cursor: pointer;
+        }
+        .idle-toast.show {
+            bottom: 30px;
+            animation: pulse-toast 2s infinite 1s;
+        }
+        body.dark-mode .idle-toast {
+            background: linear-gradient(135deg, #111, #1f2833);
+            color: #45a29e;
+            border: 1px solid #45a29e;
+            box-shadow: 0 0 15px rgba(69, 162, 158, 0.4);
+        }
+        @keyframes pulse-toast {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- Cabeçalho atualizado com Logo da UNAERP e nome do EAJ -->
     <img src="modelos/cabecalho.png" alt="Logo UNAERP" class="header-img">
     <div class="header-text">Escritório de Assistência Jurídica</div>
     
@@ -255,7 +285,6 @@
         * Campos marcados com asterisco serão inseridos apenas na Petição Inicial.
     </div>
 
-    <!-- QUALIFICAÇÃO DA PARTE AUTORA (Usado em Inicial, Procuração e Gratuidade) -->
     <div class="section-title">Qualificação da Parte Autora</div>
     
     <div class="campo">
@@ -287,12 +316,10 @@
         <input type="text" id="endereco" placeholder="Ex: Rua Paranapanema, 345, torre A, AP 608, Sumarezinho, Ribeirão Preto-SP">
     </div>
 
-    <!-- DADOS EXCLUSIVOS DA PETIÇÃO INICIAL -->
     <div class="section-title">Dados da Petição Inicial *</div>
     
     <div class="campo">
         <label>Vara* (ex: 1ª):</label>
-        <!-- Mantido o gatilho da Ordem 66 aqui -->
         <input type="text" id="vara" placeholder="Deixe em branco se for a distribuir" onkeyup="verificarOrdem66()">
     </div>
     
@@ -372,12 +399,17 @@
     <button type="button" id="btnGerar" onclick="gerarDocumentos()">Forjar Petições</button>
 </div>
 
-<!-- Bibliotecas -->
+<div id="idle-toast" class="idle-toast" onclick="limparTimerCafe()">
+    ☕ Muita calma nessa Força... Precisa de ajuda ou um café, padawan? 
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/pizzip@3.1.7/dist/pizzip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/docxtemplater@3.37.11/build/docxtemplater.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 
 <script>
+const audioForja = new Audio('modelos/som-jedi.mp3');
+
 function revelarSegredo() {
     const frasesYoda = [
         "Faça ou não faça. A tentativa não existe. (Principalmente na qualificação da parte!)",
@@ -387,7 +419,7 @@ function revelarSegredo() {
     ];
     
     const fraseSorteada = frasesYoda[Math.floor(Math.random() * frasesYoda.length)];
-    alert("🥷 HOLOCRON SECRETO DESBLOQUEADO:\n\n" + fraseSorteada);
+    alert("☬ HOLOCRON SECRETO DESBLOQUEADO ⚔:\n\n" + fraseSorteada);
 }
 
 const TEXTO_BOTAO_PADRAO = "Forjar Petições";
@@ -413,8 +445,6 @@ function atualizarBotao() {
     botao.innerText = nomeEhPadawan() ? TEXTO_BOTAO_PADRAO : TEXTO_NAO_PADAWAN;
 }
 
-atualizarBotao();
-
 function verificarOrdem66() {
     const vara = document.getElementById('vara').value.trim();
     if (vara === "66" || vara === "66ª") {
@@ -427,6 +457,34 @@ function verificarOrdem66() {
     }
 }
 
+let timerCafe;
+const TEMPO_ESPERA = 30000;
+
+function iniciarTimerCafe() {
+    clearTimeout(timerCafe);
+    const toast = document.getElementById('idle-toast');
+    if (toast) toast.classList.remove('show');
+
+    timerCafe = setTimeout(() => {
+        if (toast) toast.classList.add('show');
+    }, TEMPO_ESPERA);
+}
+
+window.limparTimerCafe = function() {
+    clearTimeout(timerCafe);
+    const toast = document.getElementById('idle-toast');
+    if (toast) toast.classList.remove('show');
+};
+
+function inicializarEasterEggCafe() {
+    const campos = document.querySelectorAll('input[type="text"], select');
+    campos.forEach(campo => {
+        campo.addEventListener('focus', iniciarTimerCafe);
+        campo.addEventListener('input', iniciarTimerCafe);
+        campo.addEventListener('blur', window.limparTimerCafe);
+    });
+}
+
 async function gerarDocumentos() {
     const btn = document.getElementById('btnGerar');
 
@@ -435,6 +493,9 @@ async function gerarDocumentos() {
         return;
     }
     
+    audioForja.currentTime = 0;
+    audioForja.play().catch(erro => console.log(erro));
+
     btn.disabled = true;
     btn.innerText = "Acessando os Arquivos Jedi, aguarde...";
 
@@ -530,6 +591,11 @@ async function gerarDocumentos() {
     btn.disabled = false;
     atualizarBotao(); 
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    atualizarBotao();
+    inicializarEasterEggCafe();
+});
 </script>
 
 </body>
