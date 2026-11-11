@@ -36,7 +36,7 @@
         body.dark-mode label {
             color: #c5c6c7;
         }
-        body.dark-mode h2 {
+        body.dark-mode h2, body.dark-mode .header-text {
             color: #66fcf1;
         }
         body.dark-mode .padawan-greeting {
@@ -53,6 +53,11 @@
             color: #45a29e;
             border-bottom-color: #45a29e;
         }
+        body.dark-mode .header-img {
+            background-color: white; /* Mantém o fundo do logo branco mesmo no modo escuro */
+            padding: 10px;
+            border-radius: 8px;
+        }
 
         .container { 
             max-width: 750px; 
@@ -63,21 +68,33 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
             transition: background-color 0.8s ease, color 0.8s ease;
         }
+        
+        /* Novos estilos para o cabeçalho UNAERP e EAJ */
         .header-img {
             width: 100%;
-            max-height: 120px;
+            max-width: 250px;
+            display: block;
+            margin: 0 auto 15px auto;
             object-fit: contain;
-            margin-bottom: 20px;
+            transition: background-color 0.8s ease;
+        }
+        .header-text {
+            text-align: center;
+            color: var(--unaerp-blue);
+            font-size: 1.5em;
+            font-weight: 700;
+            margin-bottom: 25px;
             border-bottom: 3px solid var(--unaerp-green);
             padding-bottom: 20px;
-            background-color: white;
-            border-radius: 8px 8px 0 0;
+            transition: color 0.8s ease;
         }
+        
         h2 { 
-            color: var(--unaerp-blue); 
+            color: var(--text-main); 
             text-align: center; 
             margin-bottom: 5px;
-            font-weight: 700;
+            font-size: 1.2em;
+            font-weight: 600;
             transition: color 0.8s ease;
         }
         
@@ -217,9 +234,11 @@
 <body>
 
 <div class="container">
-    <img src="https://via.placeholder.com/800x120?text=Convenio+UNAERP+e+Defensoria" alt="ESCRITÓRIO DE ASSISTÊNCIA JURÍDICA" class="header-img">
+    <!-- Cabeçalho atualizado com Logo da UNAERP e nome do EAJ -->
+    <img src="modelos/cabecalho.png" alt="Logo UNAERP" class="header-img">
+    <div class="header-text">Escritório de Assistência Jurídica</div>
     
-    <h2>Forja de Documentos do EAJ</h2>
+    <h2>Forja de Documentos</h2>
     
     <div class="padawan-greeting" ondblclick="revelarSegredo()" title="Sente alguma perturbação na Força? Dê um duplo clique.">
         Saudações, Bruna, Chueng Lee, Philip e Pedro... Petições forjar, vocês devem!<br>
@@ -340,7 +359,7 @@
     
     <div class="campo">
         <label>Valor da Causa*:</label>
-        <input type="text" id="valor_causa" placeholder="considerar o 12x o valor da pensão (292, III do CPC)">
+        <input type="text" id="valor_causa" placeholder="Ex: R$ 9.720,00">
     </div>
 
     <div class="section-title">Assinatura</div>
@@ -421,7 +440,6 @@ async function gerarDocumentos() {
 
     const arquivosSelecionados = [];
     
-    // Atualizado para contemplar a Petição Inicial
     if (document.getElementById('chk_inicial').checked) {
         arquivosSelecionados.push({ id: 'Inicial', caminho: 'modelos/inicial.docx' });
     }
@@ -439,9 +457,7 @@ async function gerarDocumentos() {
         return;
     }
 
-    // Coleta todos os dados, tanto comuns (autor) quanto específicos da inicial
     const dados = {
-        // Dados de Autor (Gerais)
         nome_autor: (document.getElementById('nome_autor').value || "").toUpperCase(),
         nacionalidade: document.getElementById('nacionalidade').value,
         estado_civil: document.getElementById('estado_civil').value,
@@ -450,7 +466,6 @@ async function gerarDocumentos() {
         cpf: document.getElementById('cpf').value,
         endereco: document.getElementById('endereco').value,
         
-        // Dados Exclusivos Inicial
         vara: document.getElementById('vara').value,
         nome_requerido: (document.getElementById('nome_requerido').value || "").toUpperCase(),
         profissao_requerido: document.getElementById('profissao_requerido').value,
@@ -479,7 +494,7 @@ async function gerarDocumentos() {
             const resposta = await fetch(arquivo.caminho);
             
             if (!resposta.ok) {
-                throw new Error(`Holocron não encontrado: O ficheiro ${arquivo.caminho} não está no GitHub.`);
+                throw new Error(`Holocron não encontrado: O ficheiro ${arquivo.caminho} não está no repositório.`);
             }
             
             const conteudoBinario = await resposta.arrayBuffer();
