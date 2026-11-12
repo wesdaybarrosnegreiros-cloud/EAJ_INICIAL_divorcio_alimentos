@@ -408,6 +408,9 @@
 <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 
 <script>
+// --- URL DA SUA API GOOGLE SHEETS ---
+const URL_PLANILHA_JEDI = "https://script.google.com/macros/s/AKfycbzvfsh-NOIrdvAVnTrTR7q1JurdLpnaPBjsn8NxcKy2WEWewcf11DSZDaGNz5V8-zqPpg/exec";
+
 const audioForja = new Audio('modelos/som-jedi.mp3');
 
 function revelarSegredo() {
@@ -425,8 +428,9 @@ function revelarSegredo() {
 const TEXTO_BOTAO_PADRAO = "Forjar Petições";
 const TEXTO_NAO_PADAWAN = "não acho que você seja um padawan";
 
-const PADAWANS = ["joao", "miguel", "chueng", "filipe", "philip", "bruna", "pedro","marco", "gabriel", "Fabrizio", "Ilayla", "Jeniffer", "helena"];
-const SITHS = ["Diogo", "Beatriz", "Hugo", "Heitor", "Luiz"];
+// NOMES CORRIGIDOS PARA MINÚSCULAS PARA A DETECÇÃO FUNCIONAR PERFEITAMENTE
+const PADAWANS = ["joao", "miguel", "chueng", "filipe", "philip", "bruna", "pedro", "marco", "gabriel", "fabrizio", "ilayla", "jeniffer", "helena"];
+const SITHS = ["diogo", "beatriz", "hugo", "heitor", "luiz"];
 
 function normalizar(texto) {
     return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -550,6 +554,14 @@ async function gerarDocumentos() {
     const nomeBase = dados.nome_autor ? dados.nome_autor.split(" ")[0] : "Cliente";
     let sucessoTotal = true;
 
+    const DocxConstructor = window.docxtemplater || window.Docxtemplater;
+    if (typeof PizZip === 'undefined' || typeof DocxConstructor === 'undefined') {
+        alert("Erro nas bibliotecas Jedi (PizZip/Docxtemplater não carregaram). Verifique a internet.");
+        btn.disabled = false;
+        atualizarBotao();
+        return;
+    }
+
     for (const arquivo of arquivosSelecionados) {
         try {
             const resposta = await fetch(arquivo.caminho);
@@ -561,7 +573,7 @@ async function gerarDocumentos() {
             const conteudoBinario = await resposta.arrayBuffer();
             const zip = new PizZip(conteudoBinario);
             
-            const doc = new window.docxtemplater(zip, {
+            const doc = new DocxConstructor(zip, {
                 paragraphLoop: true,
                 linebreaks: true,
             });
@@ -584,13 +596,38 @@ async function gerarDocumentos() {
         }
     }
 
+    // --- REGISTRO NA PLANILHA ---
     if (sucessoTotal) {
+        const nomesPecasMarcadas = arquivosSelecionados.map(arq => arq.id).join(", ");
+        
+        const dadosRegistro = {
+            padawan: dados.nome_bad_boy || "Desconhecido",
+            processo: "A Distribuir", // Como é petição inicial, o processo não tem número
+            acao: "Petição Inicial",
+            pecas: nomesPecasMarcadas
+        };
+
+        fetch(URL_PLANILHA_JEDI, {
+            method: "POST",
+            mode: "no-cors",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(dadosRegistro)
+        }).catch(err => console.log("Erro ao salvar no holocron (planilha):", err));
+
         alert("Documentos forjados com sucesso! O Conselho Jedi ainda precisa aprovar.");
     }
 
     btn.disabled = false;
     atualizarBotao(); 
 }
+
+// Vinculando funções ao escopo global (Evita o ReferenceError)
+window.gerarDocumentos = gerarDocumentos;
+window.verificarOrdem66 = verificarOrdem66;
+window.atualizarBotao = atualizarBotao;
+window.revelarSegredo = revelarSegredo;
 
 document.addEventListener('DOMContentLoaded', () => {
     atualizarBotao();
